@@ -1,9 +1,9 @@
-# Company Research Agent: real model with mock tools
+# Company Research Agent: company-domain web search
 
-One agent learns the tool-calling loop using simulated company data.
+One agent explains company divisions and how they earn revenue.
 The default mode is offline; `--live` uses an OpenAI model to choose tools.
-Both modes use the same local Siemens Energy fixture, never live websites.
-Reports are practice data. `mock://` identifiers are not public citations.
+Without `--web-domain`, both modes use the local Siemens Energy fixture.
+Mock reports are practice data; `mock://` identifiers are not public citations.
 
 ## Setup and offline run
 
@@ -32,8 +32,8 @@ Remove-Variable secret
 Remove-Item Env:OPENAI_API_KEY
 ```
 
-Live mode sends the company name and mock tool results to OpenAI and uses API
-credits. Tracing uploads are disabled in both modes. No key is logged or saved.
+Live mode sends company input and tool results to OpenAI and uses API credits.
+Web mode also incurs search charges. Tracing uploads are disabled in all modes.
 The default model is `gpt-4.1-mini`; choose another accessible model with:
 
 ```powershell
@@ -45,28 +45,36 @@ files. `.gitignore` excludes `.env` and `.env.*` if you keep local credentials
 there yourself. Never force-add credential files or put keys in source code.
 Missing credentials and API failures return exit code 1 without raw API errors.
 
-## How the loop works
+## Agent loop
 
-`main.py` -> `agent.py` -> SDK Runner -> model -> tools in `tools.py`
+`main.py` -> `agent.py` -> SDK Runner -> model -> tools
+The model requests tools; the SDK executes local functions and returns results.
+Offline mode scripts search -> read -> report in three turns and two calls.
+Live mock mode chooses tools from instructions; its behavior can vary.
+`CALL`, `TOOL`, and `STATE` logs expose actions, execution, and local memory.
+ResearchState is per-run tool context; it is not sent to the model automatically.
+The mock model in `mock_model.py` uses conversation history, not a turn counter.
 
-1. The model requests `search_company` with the company name.
-2. The SDK executes the tool and adds its result to conversation history.
-3. A matching source lets the model request `read_company_page`.
-4. The SDK executes read and returns its simulated division data.
-5. The model writes a report, or stops if there is no data or a tool error.
+## Company web research (MVP 2)
 
-Offline mode uses Python rules in `mock_model.py`: three model turns and two
-calls for Siemens Energy. Live mode follows instructions; its choices and turn
-count can vary. `max_turns=4` stops a run that does not finish within four turns.
-Instructions guide the real model; they do not guarantee factual correctness.
-`CALL` logs show tool names and JSON arguments, not hidden model reasoning.
-`TOOL` and `STATE` logs show execution and changes to application memory.
+With `OPENAI_API_KEY` configured in the shell, use a company-controlled domain:
 
-Conversation history is sent to the model on each turn; call IDs link requests
-to outputs. `result.to_input_list()` exposes the history after a run.
-`ResearchState` holds searches and successfully read pages for one run.
-The SDK passes it to tools through `RunContextWrapper`; this context is not
-sent to the model automatically. Each CLI invocation gets fresh state.
+```powershell
+.\.venv\Scripts\python.exe main.py "Siemens Energy" --live --web-domain siemens-energy.com
+```
+
+The agent uses hosted web search restricted to that domain and its subdomains.
+Supply a bare domain without `https://` or a path. The app cannot establish that
+it belongs to the company; choose it carefully. No mock tools run in web mode.
+OpenAI executes hosted actions inside the model request. `HOSTED` logs show
+returned action/status metadata, and the summary counts completed actions.
+Limits: three hosted tool calls per response and four SDK turns, not a cost cap.
+
+Inline links come from API citation annotations. Missing completed searches,
+missing citations, or citations outside the domain cause exit code 1 and no
+report. This is basic evidence handling, not independent claim verification.
+Company statements may be incomplete or outdated. No match may yield no report.
+The plan and applicability review are in [docs/mvp2-plan.md](docs/mvp2-plan.md).
 
 ## Tests and GitHub CI
 
@@ -81,8 +89,9 @@ They do not establish real-model behavior or verify account/model access.
 
 GitHub Actions runs dependency checks, tests, and offline CLI smoke checks on
 Python 3.12 and 3.14 for pushes and pull requests. No GitHub API-key secret is
-required. No deployment is configured for this command-line MVP.
+required. CI includes web request/citation tests using simulated API responses.
 Each MVP belongs on its own branch and an unmerged PR for manual review.
 
-Live website research and source verification remain later learning stages.
+Live API behavior has not been checked without a configured replacement key.
+Independent source/claim verification remains a later learning stage.
 SDK reference: https://developers.openai.com/api/docs/guides/agents/sdk

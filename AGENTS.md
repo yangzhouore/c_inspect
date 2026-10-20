@@ -35,13 +35,12 @@ The project is both a practical application and a learning exercise.
 
 ## 6. Workflow
 For each development task:
-1. Briefly explain the approach.
-2. Implement the smallest working solution.
-3. Run relevant tests.
-4. Summarize what changed and what was learned.
-5. Work on a separate Git branch for each implementation/MVP.
-6. Run GitHub Actions tests remotely and open a PR for manual review.
-7. Leave PRs unmerged; do not enable automatic merging.
+1. Create a concise plan, then review and verify its applicability.
+2. Research the approach before implementing the smallest working solution.
+3. Work on a separate Git branch for each implementation/MVP.
+4. Validate locally, commit, and run GitHub Actions tests remotely.
+5. Open a PR for manual review; leave it unmerged and do not enable auto-merging.
+6. Summarize what changed, validation results, and what was learned.
 
 ## 7. Restrictions
 - Do not introduce multi-agent systems, MCP, or databases unless requested.
