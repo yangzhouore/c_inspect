@@ -1,78 +1,88 @@
-﻿# Company Research Agent: first local prototype
+# Company Research Agent: real model with mock tools
 
-Learn the OpenAI Agents SDK without an API key. All decisions and data are mocks.
-No OpenAI requests, web searches or tracing uploads happen during a run.
-The sample report is practice data, not current or verified company research.
-Its `mock://` references are local identifiers, not reliable public citations.
+One agent learns the tool-calling loop using simulated company data.
+The default mode is offline; `--live` uses an OpenAI model to choose tools.
+Both modes use the same local Siemens Energy fixture, never live websites.
+Reports are practice data. `mock://` identifiers are not public citations.
 
-## Run
+## Setup and offline run
 
-From this project directory in PowerShell:
+Use Python 3.12 or newer. From this directory in PowerShell:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe main.py
+.\.venv\Scripts\python.exe main.py "Siemens Energy"
 .\.venv\Scripts\python.exe main.py "Unknown Company"
+```
+
+The only direct dependency is the pinned `openai-agents` package.
+You can use the virtual environment's interpreter without activating it.
+
+## Real-model run (step 1)
+
+Use a replacement key if a previous key was exposed. Never paste keys in chat.
+This PowerShell prompt hides input and sets a key only for this shell session:
+
+```powershell
+$secret = Read-Host "Replacement OpenAI API key" -AsSecureString
+$env:OPENAI_API_KEY = [System.Net.NetworkCredential]::new("", $secret).Password
+Remove-Variable secret
+.\.venv\Scripts\python.exe main.py "Siemens Energy" --live
+Remove-Item Env:OPENAI_API_KEY
+```
+
+Live mode sends the company name and mock tool results to OpenAI and uses API
+credits. Tracing uploads are disabled in both modes. No key is logged or saved.
+The default model is `gpt-4.1-mini`; choose another accessible model with:
+
+```powershell
+.\.venv\Scripts\python.exe main.py "Siemens Energy" --live --model gpt-4.1
+```
+
+The program reads `OPENAI_API_KEY` from the environment. It does not load `.env`
+files. `.gitignore` excludes `.env` and `.env.*` if you keep local credentials
+there yourself. Never force-add credential files or put keys in source code.
+Missing credentials and API failures return exit code 1 without raw API errors.
+
+## How the loop works
+
+`main.py` -> `agent.py` -> SDK Runner -> model -> tools in `tools.py`
+
+1. The model requests `search_company` with the company name.
+2. The SDK executes the tool and adds its result to conversation history.
+3. A matching source lets the model request `read_company_page`.
+4. The SDK executes read and returns its simulated division data.
+5. The model writes a report, or stops if there is no data or a tool error.
+
+Offline mode uses Python rules in `mock_model.py`: three model turns and two
+calls for Siemens Energy. Live mode follows instructions; its choices and turn
+count can vary. `max_turns=4` stops a run that does not finish within four turns.
+Instructions guide the real model; they do not guarantee factual correctness.
+`CALL` logs show tool names and JSON arguments, not hidden model reasoning.
+`TOOL` and `STATE` logs show execution and changes to application memory.
+
+Conversation history is sent to the model on each turn; call IDs link requests
+to outputs. `result.to_input_list()` exposes the history after a run.
+`ResearchState` holds searches and successfully read pages for one run.
+The SDK passes it to tools through `RunContextWrapper`; this context is not
+sent to the model automatically. Each CLI invocation gets fresh state.
+
+## Tests and GitHub CI
+
+```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-The only direct dependency is `openai-agents`. Python 3.14 was used locally.
+Tests forbid network connections and use no real credentials. Live-path tests
+substitute API responses at the OpenAI client boundary, exercising the actual
+SDK adapter, tool execution, returned observations, and CLI error handling.
+They do not establish real-model behavior or verify account/model access.
 
-## Minimal architecture
+GitHub Actions runs dependency checks, tests, and offline CLI smoke checks on
+Python 3.12 and 3.14 for pushes and pull requests. No GitHub API-key secret is
+required. No deployment is configured for this command-line MVP.
+Each MVP belongs on its own branch and an unmerged PR for manual review.
 
-`main.py` -> `agent.py` -> SDK Runner -> `mock_model.py` -> `tools.py`
-
-- `main.py`: accepts a company name and prints the result.
-- `agent.py`: defines one Agent, its tools and a bounded run.
-- `mock_model.py`: replaces an LLM with explicit rules.
-- `tools.py`: supplies mock search/page data and the ResearchState dataclass.
-
-An Agent combines instructions, a decision model and available tools.
-A tool is a function the model can request by name with JSON arguments.
-The SDK validates arguments and executes the registered function.
-The mock model emits SDK-compatible responses; it never executes tools itself.
-The short agent instructions are for a future LLM; the mock follows Python rules.
-
-## Watch the loop
-
-1. No tool result exists: request `search_company` with the company name.
-2. The SDK executes search and adds its result to conversation history.
-3. A source exists: request `read_company_page` with the returned identifier.
-4. The SDK executes read and adds the page to conversation history.
-5. Division data exists: return a final report. The SDK stops.
-
-A normal run makes three model decisions and two tool calls.
-An unknown company stops after search, without inventing a report.
-`max_turns=4` bounds model turns, not the number of tools.
-Printed DECISION messages explain scripted rules, not hidden LLM reasoning.
-CALL messages show the requested tool and its JSON arguments.
-TOOL and STATE messages show execution and application memory changes.
-
-## Two kinds of state
-
-Conversation history contains user input, tool calls and tool outputs.
-The SDK passes this history to the model on each turn.
-`result.to_input_list()` exposes it after the run.
-Call IDs connect each tool request to its returned output.
-
-ResearchState holds the company, search queries and pages successfully read.
-The SDK passes it to tools through RunContextWrapper.
-This local context is not automatically sent to the model.
-Each new run gets fresh state; nothing is stored on disk.
-The mock selects its next action from history, not a hidden turn counter.
-
-## Try a small experiment
-
-Change one revenue description in MOCK_PAGE, then run again.
-The final report changes because the model reads the tool output.
-Run an unknown company to see the no-data stopping decision.
-
-## Later: a real model
-
-Replace MockResearchModel in build_agent with an SDK-supported real model.
-The Runner, tool contracts and state pattern can stay.
-Mock tools must also be replaced before doing actual website research.
-Credential setup, live search and source verification are future steps.
-
+Live website research and source verification remain later learning stages.
 SDK reference: https://developers.openai.com/api/docs/guides/agents/sdk
