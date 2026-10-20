@@ -39,6 +39,9 @@ For each development task:
 2. Implement the smallest working solution.
 3. Run relevant tests.
 4. Summarize what changed and what was learned.
+5. Work on a separate Git branch for each implementation/MVP.
+6. Run GitHub Actions tests remotely and open a PR for manual review.
+7. Leave PRs unmerged; do not enable automatic merging.
 
 ## 7. Restrictions
 - Do not introduce multi-agent systems, MCP, or databases unless requested.
