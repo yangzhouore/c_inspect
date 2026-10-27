@@ -1,9 +1,11 @@
-# Company Research Agent: company-domain web search
+# Company Research Agent learning lab
 
 One agent explains company divisions and how they earn revenue.
 The default mode is offline; `--live` uses an OpenAI model to choose tools.
 Without `--web-domain`, both modes use the local Siemens Energy fixture.
 Mock reports are practice data; `mock://` identifiers are not public citations.
+Learning stage 2: [offline evaluation walkthrough (中文)](docs/offline-evaluation.md).
+Run the baseline with `.\.venv\Scripts\python.exe -m evals.run` (no API key).
 
 ## Setup and offline run
 

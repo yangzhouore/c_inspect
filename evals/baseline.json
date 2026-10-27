@@ -1,0 +1,94 @@
+{
+  "suite": "offline-v1",
+  "mode": "scripted-mock",
+  "sdk_version": "0.23.1",
+  "limitation": "Regression checks only; no real-model quality or independent fact verification.",
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "name": "known_company",
+      "company": "Siemens Energy",
+      "passed": true,
+      "checks": {
+        "expected_outcome": true,
+        "required_content": true,
+        "forbidden_content_absent": true,
+        "tool_sequence": true,
+        "turn_limit": true,
+        "report_on_success_only": true
+      },
+      "observation": {
+        "report": "MOCK DEMO - practice data, not verified company research.\n\nGas Services\n  Function: Gas turbines and power plant services.\n  Makes money through: Equipment sales, maintenance, spare parts and service contracts.\n  Mock source: mock://siemens-energy/businesses\n\nGrid Technologies\n  Function: Equipment for electricity transmission.\n  Makes money through: Grid equipment, project delivery and related services.\n  Mock source: mock://siemens-energy/businesses\n\nTransformation of Industry\n  Function: Energy equipment for industry.\n  Makes money through: Industrial equipment sales, engineering and maintenance.\n  Mock source: mock://siemens-energy/businesses\n\nSiemens Gamesa\n  Function: Wind turbines and wind farm services.\n  Makes money through: Turbine sales, installation and long-term service contracts.\n  Mock source: mock://siemens-energy/businesses\n\nSources are simulated. Real website research and verification come later.",
+        "tools": [
+          "search_company",
+          "read_company_page"
+        ],
+        "turns": 3,
+        "error": null
+      }
+    },
+    {
+      "name": "normalized_company",
+      "company": "  sIeMeNs EnErGy  ",
+      "passed": true,
+      "checks": {
+        "expected_outcome": true,
+        "required_content": true,
+        "forbidden_content_absent": true,
+        "tool_sequence": true,
+        "turn_limit": true,
+        "report_on_success_only": true
+      },
+      "observation": {
+        "report": "MOCK DEMO - practice data, not verified company research.\n\nGas Services\n  Function: Gas turbines and power plant services.\n  Makes money through: Equipment sales, maintenance, spare parts and service contracts.\n  Mock source: mock://siemens-energy/businesses\n\nGrid Technologies\n  Function: Equipment for electricity transmission.\n  Makes money through: Grid equipment, project delivery and related services.\n  Mock source: mock://siemens-energy/businesses\n\nTransformation of Industry\n  Function: Energy equipment for industry.\n  Makes money through: Industrial equipment sales, engineering and maintenance.\n  Mock source: mock://siemens-energy/businesses\n\nSiemens Gamesa\n  Function: Wind turbines and wind farm services.\n  Makes money through: Turbine sales, installation and long-term service contracts.\n  Mock source: mock://siemens-energy/businesses\n\nSources are simulated. Real website research and verification come later.",
+        "tools": [
+          "search_company",
+          "read_company_page"
+        ],
+        "turns": 3,
+        "error": null
+      }
+    },
+    {
+      "name": "unknown_company",
+      "company": "Unknown Company",
+      "passed": true,
+      "checks": {
+        "expected_outcome": true,
+        "required_content": true,
+        "forbidden_content_absent": true,
+        "tool_sequence": true,
+        "turn_limit": true,
+        "report_on_success_only": true
+      },
+      "observation": {
+        "report": "MOCK DEMO: No local data for this company. Try Siemens Energy.",
+        "tools": [
+          "search_company"
+        ],
+        "turns": 2,
+        "error": null
+      }
+    },
+    {
+      "name": "blank_input",
+      "company": "   ",
+      "passed": true,
+      "checks": {
+        "expected_outcome": true,
+        "required_content": true,
+        "forbidden_content_absent": true,
+        "tool_sequence": true,
+        "turn_limit": true,
+        "report_on_success_only": true
+      },
+      "observation": {
+        "report": "",
+        "tools": [],
+        "turns": 0,
+        "error": "ValueError"
+      }
+    }
+  ]
+}
